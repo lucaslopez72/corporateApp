@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import {
   IonHeader,
@@ -11,13 +12,12 @@ import {
   IonCardContent
 } from '@ionic/angular';
 
-import { GeolocationService } from '../../services/geolocation';
-
 @Component({
   selector: 'app-nosotros',
   templateUrl: './nosotros.page.html',
   styleUrls: ['./nosotros.page.scss'],
   imports: [
+    CommonModule,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -30,21 +30,56 @@ import { GeolocationService } from '../../services/geolocation';
 })
 export class NosotrosPage implements OnInit {
 
-  distancia: number = 0;
+  distancia: number | null = null;
+  error = '';
 
-  constructor(private geolocationService: GeolocationService) {}
+  constructor(private cdr: ChangeDetectorRef) {}
 
-  async ngOnInit() {
-    const posicion = await this.geolocationService.getCurrentPosition();
+  ngOnInit() {
 
-    const oficinaLat = 40.4452;
-    const oficinaLon = -3.6115;
+    if (!navigator.geolocation) {
+      this.error = 'La geolocalización no está disponible.';
+      return;
+    }
 
-    this.distancia = this.calcularDistancia(
-      posicion.latitude,
-      posicion.longitude,
-      oficinaLat,
-      oficinaLon
+    navigator.geolocation.getCurrentPosition(
+
+      (position) => {
+
+        const latitud = position.coords.latitude;
+        const longitud = position.coords.longitude;
+
+        const oficinaLat = 40.4452;
+        const oficinaLon = -3.6115;
+
+        this.distancia = this.calcularDistancia(
+          latitud,
+          longitud,
+          oficinaLat,
+          oficinaLon
+        );
+
+        console.log('Latitud:', latitud);
+        console.log('Longitud:', longitud);
+        console.log('Distancia:', this.distancia);
+
+        this.cdr.detectChanges();
+      },
+
+      (error) => {
+
+        console.error('Error geolocalización:', error);
+
+        this.error = 'No se pudo obtener la ubicación.';
+
+        this.cdr.detectChanges();
+      },
+
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
     );
   }
 

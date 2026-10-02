@@ -12,12 +12,22 @@
     </ion-card-header>
 
     <ion-card-content>
+
       Empresa especializada en soluciones basadas en Angular, Ionic y Node.js.
 
-      <p>
+      <p *ngIf="distancia !== null">
         Distancia a nuestras oficinas:
         {{ distancia.toFixed(2) }} km
       </p>
+
+      <p *ngIf="distancia === null && !error">
+        Calculando ubicación...
+      </p>
+
+      <p *ngIf="error">
+        {{ error }}
+      </p>
+
     </ion-card-content>
   </ion-card>
 
